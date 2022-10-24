@@ -1,18 +1,15 @@
-let rec=require('./rectangle.js');
-let square=require('./square.js');
-let circle= require('./collback&error.js');
-console.log("Area of Rectangle is : "+ rec.area(3,2));
-console.log("Parameter of Rectangle is : "+ rec.paramenter(3,2));
-console.log("Area of Square is : "+ square.area(3));
-console.log("Parameter of Rectangle is : "+ square.paramenter(3));
+const http=require('http');
+const { hostname } = require('os');
+const host='localhost'
+const port='8080'
 
+const server= http.createServer((req,resp)=>{
+    console.log(req);
+    resp.statusCode=200;
+    resp.setHeader('CONTENT_TYPE','text/html');
+    resp.end('<html><body><h1>Namaste, World!</h1></body></html>');
 
-
-circle(5,(err,obj)=>{
-    if(err){
-        console.log(err.message);
-    }else{
-        console.log("Area of circle is "+obj.area())
-        console.log("Parameter of circle is "+obj.parameter())
-    }
+})
+server.listen(port,hostname,()=>{
+    console.log("Server Started on Port 8080")
 })
