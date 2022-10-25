@@ -7,16 +7,13 @@ const host='localhost'
 const port='8080'
 
 
-
+const router= require('./router');
 const app=express();
 app.use(logger('common'));
 app.use(express.static('public'));
-app.use((req,resp)=>{
-    // console.log(req);
-    resp.status=200;
-    resp.setHeader('content-type','text/html');
-    resp.end('<html><body><small>file not found</small></body></html>')
-})
+
+
+app.use('/routers/:id',router);
 app.listen(port,host,()=>{
     console.log(`server started  on url http://${host}:${port} `)
 })
