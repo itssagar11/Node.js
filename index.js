@@ -5,26 +5,29 @@ const crud=require('./crud');
 const url='mongodb://127.0.0.1:27017'; 
 
 
-mongoClient.connect(url,(err,client)=>{ // db connection
-    assert.equal(err,null);
+mongoClient.connect(url).then((client)=>{ // db connection
+   
     console.log(" Connection Established");
      db= client.db('coursera');
-     crud.insertOne(db,{name:"ram",title:"SDE"},'Employees',(result)=>{
-        console.log(result+" Insert");
-     })
-     crud.updateDocument(db,{name:"ram"},{name:"kam"},'Employees',(res)=>{
-        console.log(res+"Update");
-     })
-     crud.findDocument(db,'Employees',(res)=>{
-        console.log(res);
-     });
+     crud.insertOne(db,{name:"ram",title:"SDE"},'Employees').then((res)=>{
+      console.log(res);
+      return crud.updateDocument(db,{name:"ram"},{name:"kam"},'Employees');
 
-    //  crud.removeDocument(db,{name:"ram"},'Employees',(res)=>{
-    //     console.log(res);
-    //  })
-    // db.createCollection('admin',(err,res)=>{
-    //     assert.equal(err,null);
-    //     console.log("Collection created "+res);
-    // });
+     }).then((res)=>{
+      console.log(res);
+
+      return  crud.updateDocument(db,{name:"ram"},{name:"kam"},'Employees')
+     }).then((res)=>{
+      console.log(res+"Update");
+      return  crud.findDocument(db,'Employees')
+     }).then((res)=>{
+      crud.removeDocument(db,{name:"ram"},'Employees')
+     }).catch((err)=>{
+      console.log(err);
+     })
     
+    
+})
+.catch((err)=>{
+   console.log(err);
 })

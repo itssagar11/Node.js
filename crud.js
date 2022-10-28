@@ -3,34 +3,23 @@ const { debugPort } = require('process');
 
 
 
-exports.insertOne=(db,document,collection,collback)=>{
+exports.insertOne=(db,document,collection)=>{
     const call=db.collection(collection);
-    call.insertOne(document,(err,res)=>{
-        assert.equal(err,null);
-        collback(res.acknowledged);
-    });
+    return call.insertOne(document)
+       
 };
 
 exports.findDocument=(db,collection,collback)=>{
     const call=db.collection(collection);
-    call.find({}).toArray((err,res)=>{
-        assert.equal(err,null);
-        collback(res);
-    });
+    return call.find({}).toArray();
 };
 
 exports.updateDocument=(db,query,update,collection,collback)=>{
     const call=db.collection(collection);
-    call.updateOne(query,{$set:update},null,(err,res)=>{
-        assert.equal(err,null);
-        collback(res.acknowledged);
-    });
+   return  call.updateOne(query,{$set:update},null);
 };
 
 exports.removeDocument=(db,query,collection,collback)=>{
     const call=db.collection(collection);
-    call.deleteOne(query,(err,res)=>{
-        assert.equal(err,null);
-        collback(res.acknowledged);
-    })
+   return  call.deleteOne(query)
 }
