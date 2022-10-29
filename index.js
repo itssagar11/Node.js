@@ -1,33 +1,49 @@
-const mongoClient=require('mongodb').MongoClient;
+const mongoose=require('mongoose');
+const admin= require('./models/coursera');
+
 const assert=require('assert');
-const { createBrotliDecompress } = require('zlib');
-const crud=require('./crud');
-const url='mongodb://127.0.0.1:27017'; 
 
+const url='mongodb://127.0.0.1:27017/coursera'; 
 
-mongoClient.connect(url).then((client)=>{ // db connection
-   
-    console.log(" Connection Established");
-     db= client.db('coursera');
-     crud.insertOne(db,{name:"ram",title:"SDE"},'Employees').then((res)=>{
-      console.log(res);
-      return crud.updateDocument(db,{name:"ram"},{name:"kam"},'Employees');
+mongoose.connect(url).then(()=>{
+  console.log("Connection Established");
 
-     }).then((res)=>{
-      console.log(res);
+//   let   newAdmin= admin({
+//     name:"Ram",
+//     email:"ram21@gmail.com",
+//     role:1
+//   });
 
-      return  crud.updateDocument(db,{name:"ram"},{name:"kam"},'Employees')
-     }).then((res)=>{
-      console.log(res+"Update");
-      return  crud.findDocument(db,'Employees')
-     }).then((res)=>{
-      crud.removeDocument(db,{name:"ram"},'Employees')
-     }).catch((err)=>{
-      console.log(err);
-     })
-    
-    
+//   return newAdmin.save();
+ })
+
+//  instead we can also use 
+admin.create({
+  name:"Ram",
+  email:"aa@gmail.com",
+   role:1
+})
+.then((dish)=>{
+  console.log(dish);
+  return admin.findById(dish._id);
+}).then((docs)=>{
+  console.log(docs+"hii");
+    docs.address.push({
+    streetNo:23,
+    city:"doon",
+    state:"uk hai bhaisaab"
+   });
+   return docs.save();
+}).then((res)=>{
+  console.log(res)
+  admin.find({});
+}).then((docs)=>{
+  console.log(docs);
 })
 .catch((err)=>{
-   console.log(err);
+  console.log("error  "+err);
 })
+.finally(()=>{
+  return mongoose.connection.close();
+});
+
