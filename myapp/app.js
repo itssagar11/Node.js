@@ -22,6 +22,38 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+let auth= (req,resp,next)=>{
+     
+      let authHeader = req.headers.authorization;
+      console.log(authHeader);
+      if(!authHeader){
+
+        let err= new Error('Authentication Required!');
+        err.status=401;
+        resp.setHeader('WWW-Authenticate','Basic');
+        next(err);
+        return;
+      }else{
+
+        let auth = new Buffer.from(authHeader.split(' ')[1],'base64').toString().split(':');
+        let username= auth[0];
+        let password= auth[1];
+        console.log(username, " ",password);
+        if(username=='sagar' && password=='password'){
+          next();
+        }else{
+
+          let err= new Error('Authentication Invalid!');
+          err.status=401;
+          resp.setHeader('WWW-Authenticate','Basic');
+          next(err);
+          return;
+        }
+      }
+
+
+}
+app.use(auth);
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
