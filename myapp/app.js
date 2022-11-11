@@ -21,7 +21,22 @@ app.set('view engine', 'pug');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
+app.use(cookieParser('1234-1223'));
+
+
+let cookieAuth=(req,resp,next)=>{
+  if(!req.signedCookies.user){
+      auth(req,resp,next);
+  }else{
+    if(req.signedCookies.user==='admin'){
+      next();
+    }else{
+      let err= new Error('Invalid Cookies');
+      err.status=401;
+      next(err);
+    }
+  }
+}
 let auth= (req,resp,next)=>{
      
       let authHeader = req.headers.authorization;
@@ -40,6 +55,7 @@ let auth= (req,resp,next)=>{
         let password= auth[1];
         console.log(username, " ",password);
         if(username=='sagar' && password=='password'){
+          resp.cookie('user','admin',{signed:true});  ///set cookies
           next();
         }else{
 
@@ -53,7 +69,7 @@ let auth= (req,resp,next)=>{
 
 
 }
-app.use(auth);
+app.use(cookieAuth);
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
