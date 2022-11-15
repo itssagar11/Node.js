@@ -1,13 +1,27 @@
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
-var cookieParser = require('cookie-parser');
+ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const mongoose=require('mongoose')
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const adminRouter=require('./routes/admin');
+
+
+let session=require('express-session');
+let fileStore=require('session-file-store')(session);
+
+
 var app = express();
+app.use(session({
+  name: 'login',
+  secret: '12345-67890-09876-54321',
+  saveUninitialized: false,
+  resave: false,
+  store: new fileStore()
+}));
+
 const url= 'mongodb://localhost:27017/coursera';
 const connect= mongoose.connect(url).then((db)=>{
   console.log("Connection Established");
@@ -21,14 +35,20 @@ app.set('view engine', 'pug');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser('1234-1223'));
 
 
-let cookieAuth=(req,resp,next)=>{
-  if(!req.signedCookies.user){
+// app.use(cookieParser('1234-1223'));
+
+
+
+
+
+let auths=(req,resp,next)=>{
+  if(!req.session.user){
       auth(req,resp,next);
   }else{
-    if(req.signedCookies.user==='admin'){
+    if(req.session.user==='authenticated'){
+      console.log('req Session: ',req.session);
       next();
     }else{
       let err= new Error('Invalid Cookies');
@@ -55,7 +75,7 @@ let auth= (req,resp,next)=>{
         let password= auth[1];
         console.log(username, " ",password);
         if(username=='sagar' && password=='password'){
-          resp.cookie('user','admin',{signed:true});  ///set cookies
+          req.session.admin='authenticated';
           next();
         }else{
 
@@ -69,11 +89,13 @@ let auth= (req,resp,next)=>{
 
 
 }
-app.use(cookieAuth);
-app.use(express.static(path.join(__dirname, 'public')));
+
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use(auths);
+app.use(express.static(path.join(__dirname, 'public')));
+
 app.use('/admin',adminRouter);
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
