@@ -7,7 +7,10 @@ const mongoose=require('mongoose')
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const adminRouter=require('./routes/admin');
-
+var passport = require('passport');
+var LocalStrategy = require('passport-local').Strategy;
+var User = require('./models/user');
+let bodyParser=require('body-parser');
 
 let session=require('express-session');
 let fileStore=require('session-file-store')(session);
@@ -15,12 +18,21 @@ let fileStore=require('session-file-store')(session);
 
 var app = express();
 app.use(session({
-  name: 'login',
+  name: 'session-id',
   secret: '12345-67890-09876-54321',
-  saveUninitialized: false,
+  saveUninitialized: true,
   resave: false,
   store: new fileStore()
 }));
+app.use(bodyParser.json());
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.use(new LocalStrategy(User.authenticate()));
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
 
 const url= 'mongodb://localhost:27017/coursera';
 const connect= mongoose.connect(url).then((db)=>{
@@ -40,67 +52,32 @@ app.use(express.urlencoded({ extended: false }));
 // app.use(cookieParser('1234-1223'));
 
 
+app.use(express.static(path.join(__dirname, 'public')));
 
 
 
-let auths=(req,resp,next)=>{
-  if(!req.session.user){
-      auth(req,resp,next);
-  }else{
-    if(req.session.user==='authenticated'){
-      console.log('req Session: ',req.session);
-      next();
-    }else{
-      let err= new Error('Invalid Cookies');
-      err.status=401;
+let auth=(req,resp,next)=>{
+  if(!req.user){
+      // auth(req,resp,next);
+      console.log("hiiii ",req);
+      let err= new Error('Not Authenticate User-errror');
+      err.status=403;
       next(err);
-    }
+  }else{
+    next();
   }
 }
-let auth= (req,resp,next)=>{
-     
-      let authHeader = req.headers.authorization;
-      console.log(authHeader);
-      if(!authHeader){
 
-        let err= new Error('Authentication Required!');
-        err.status=401;
-        resp.setHeader('WWW-Authenticate','Basic');
-        next(err);
-        return;
-      }else{
-
-        let auth = new Buffer.from(authHeader.split(' ')[1],'base64').toString().split(':');
-        let username= auth[0];
-        let password= auth[1];
-        console.log(username, " ",password);
-        if(username=='sagar' && password=='password'){
-          req.session.admin='authenticated';
-          next();
-        }else{
-
-          let err= new Error('Authentication Invalid!');
-          err.status=401;
-          resp.setHeader('WWW-Authenticate','Basic');
-          next(err);
-          return;
-        }
-      }
-
-
-}
-
+app.use('/users', usersRouter);
+app.use(auth);
 
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
-app.use(auths);
-app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/admin',adminRouter);
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
-});
+// app.use(function(req, res, next) {
+//   next(createError(404));
+// });
 
 // error handler
 app.use(function(err, req, res, next) {
