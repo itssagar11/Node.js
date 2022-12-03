@@ -7,7 +7,7 @@ const mongoose=require('mongoose')
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const adminRouter=require('./routes/admin');
-
+const comment=require('./routes/comment');
 var User = require('./models/user');
 let bodyParser=require('body-parser');
 let session=require('express-session');
@@ -48,6 +48,7 @@ app.use('/users', usersRouter);
 app.use('/',jwtAuth.verfyToken, indexRouter);
 
 app.use('/admin',jwtAuth.verfyToken,adminRouter);
+app.use('/comment',comment);
 // catch 404 and forward to error handler
 // app.use(function(req, res, next) {
 //   next(createError(404));

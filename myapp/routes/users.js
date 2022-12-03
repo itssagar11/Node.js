@@ -10,7 +10,12 @@ router.use(bodyParser.json());
 
 /* GET users listing. */
 router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
+  User.find({}).then((doc)=>{
+    res.statusCode=200;
+    res.setHeader('COontent-Type','application/json');
+    res.json(doc);
+    res.end();
+})
 });
 
 
@@ -33,6 +38,17 @@ router.post('/signup',(req,res,next)=>{
       res.setHeader('Content-Type','application/json');
       res.json({err:err});
       }else{
+        if(req.user.firstname)
+          user.firstName=req.body.firstname;
+          if(req.user.lastname)
+        user.lastName=req.body.lastname;
+        user.save((err,user)=>{
+          if(err){
+            res.statusCode=500;
+            res.setHeader('Content-Type','application/json');
+            res.json({err:err});
+          }
+        })
           res.statusCode = 200;
           res.setHeader('Content-Type', 'application/json');
           res.json({success: true, status: 'Registration Successful!'});
@@ -42,22 +58,31 @@ router.post('/signup',(req,res,next)=>{
 
 router.post('/login',(req,resp,next)=>{
   console.log(req);
-  if(req.body.username=='sagar'){
-    user={_id: req.body.ussrname};
+  User.findOne({username:req.body.username}).then((res)=>{
+      console.log(res);
+    if(res!=null){
+    user={_id: res._id};
     const token= jwt.createToken(user);
    
-       resp.statusCode=200;
-       resp.setHeader('Content-Type','application/JSON');
-       resp.json({status:'authenticated',token:token});
-  }else{
-    resp.statusCode=400;
-    resp.setHeader('Content-Type','text/plain');
-    resp.end("Invalid user");
-  }
+    resp.statusCode=200;
+    resp.setHeader('Content-Type','application/JSON');
+    resp.json({status:'authenticated',token:token});
+    }else{
+      resp.statusCode=400;
+      resp.setHeader('Content-Type','text/plain');
+      resp.end("Invalid user");
+    }
+  })
+  .catch((err)=>{
+      next(err);
+  })
   
-    
+  
+  
+  
 
 })
+
 
 
 module.exports = router;
